@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            table{
+                border-collapse: collapse;
+            }
+            table,tr,th,td{
+                border:1px solid turquoise;
+            }
+            /*hide undesired columns*/
+            td:nth-child(1), td:nth-child(3),td:nth-child(4),td:nth-child(6),td:nth-child(9),td:nth-child(10),td:nth-child(12),td:nth-child(20),td:nth-child(21),td:nth-child(22),
+            th:nth-child(1), th:nth-child(3),th:nth-child(4),th:nth-child(6),th:nth-child(9),th:nth-child(10),th:nth-child(12),th:nth-child(20),th:nth-child(21),th:nth-child(22),
+            td:nth-child(13), td:nth-child(14),td:nth-child(15),td:nth-child(17),td:nth-child(18),td:nth-child(19),
+            th:nth-child(13), th:nth-child(14),th:nth-child(15),th:nth-child(17),th:nth-child(18),th:nth-child(19){
+                display:none;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="divmaincontent"></div>
+        <script>
+            fetchArticles=()=>{
+                fetch(`https://api.nytimes.com/svc/mostpopular/v2/shared/1/facebook.json?api-key=wix8qQtrlfoaYBPGri0uA6r0xy8GMkQP`)
+                .then((res) => {
+                    DisplayData(res.json()) 
+                    });
+            }
+
+            //call function to get news json data
+            fetchArticles();
+
+            //function to handle displaying data
+            async function DisplayData(data){
+                var d = await data;
+                d = d.results; //get or access results object
+                console.log(d);
+
+                var keys = Object.values(d); //get first value [0], then get its keys
+
+               //~~~~~~~~~~~~~build body data~~~~~~~~~~~~
+               var arrdata = {};
+                //arrdata['key'] = {key1:'val1', key2:'val2'};  // store an Object at data.key 
+                //arrdata.key.key1;  // 'val1'
+                //console.log(Object.keys(Object.values(filedata)[0]))) //to get key names
+
+                //get keys / column names []
+                var keys = Object.keys(Object.values(d)[0]); //get first value [0], then get its keys
+
+                //~~~~~~~~~~~~~build body data~~~~~~~~~~~~
+                for(var k=0; k<Object.values(d).length; k++){
+                    //arrdata['key'] = {key1:'val1', key2:'val2'};  // store an Object at data.key 
+                    var kvp = {};
+
+                    //if attributes were used
+                    for(var i=0; i<keys.length; i++){ 
+                        kvp[keys[i].toUpperCase()]=(Object.values(d)[k])[keys[i]];  
+                    }
+
+                    //add to array
+                    arrdata[k] = { ...kvp };
+                }
+                //console.log(arrdata);
+                LoadHtmlTable(arrdata);
+            }
+            //--------------great------------
+
+            function LoadHtmlTable(arr){
+                //+++++
+                var tbl="<table id='tbl'>";
+                //~~~~~~~~~~~~~build header columns~~~~~~~~~~~~
+                var headerRow = Object.keys(arr[0]); 
+                for(var i=0; i<headerRow.length; i++){  //loop first row to get columns
+                    tbl += `<th>${headerRow[i]}</th>`;  
+                }
+                //~~~~~~~~~~~~~build body data~~~~~~~~~~~~
+                var arrkeys = Object.keys(arr);
+                for(var k=0; k<arrkeys.length; k++){
+                    tbl += `<tr>`;
+                    var coldata = Object.values(arr[k]); 
+                    for(var i=0; i<coldata.length; i++){ 
+                        if(isValidURL(coldata[i])){
+                            tbl += `<td><a href='${coldata[i]}'>${coldata[14]}</a></td>`; 
+                        }else{
+                            tbl += `<td>${coldata[i]}</td>`; 
+                        }
+                    }
+                    tbl += `</tr>`;
+                }
+                tbl += `</table>`;
+                document.querySelector('#divmaincontent').innerHTML = tbl;
+                //+++++
+            }
+
+            //check if string is url : When true : create hyperlink
+            function isValidURL(url){
+                var elem;
+                if(!elem){
+                    elem = document.createElement('input');
+                    elem.setAttribute('type', 'url');
+                }
+                elem.value = url;
+                return elem.validity.valid;
+            }
+            //tests
+            /*console.log(isValidURL('http://www.google.com/'));
+            console.log(isValidURL('//google.com'));
+            console.log(isValidURL('google.com'));
+            console.log(isValidURL('localhost:8000'));
+            */
+
+        </script>
+    </body>
+</html>
